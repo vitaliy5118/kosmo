@@ -2,7 +2,7 @@
 
 //общие данные 
 $config = array (
-    'userSite' => 'ss1.in.ua',
+    'userSite' => 'kosmo.in.ua',
     'userEmail' => 'vitaliy5118@meta.ua',
     'userPhone_1' => '+38(093) 916-91-39',
     'userPhone_2' => '+38(097) 720-95-34',
@@ -10,10 +10,10 @@ $config = array (
     'userVK_2' => 'https://vk.com/liliya002',
     'userFB_1' => 'https://www.facebook.com/profile.php?id=100000729912183&fref=ts',
     'userFB_2' => 'https://www.facebook.com/liliya.tsiukh',
-    'userSkype' => 'OliviaBeaty',
-    'userVkGroup' => 'OliviaBeaty',
+    'userSkype' => 'KosmoBeaty',
+    'userVkGroup' => 'KosmoBeaty',
     'userAdressCity' => 'м. Хмельницький',
-    'userAdressStr' => 'вул. Киевская, 148, 3-й этаж',
+    'userAdressStr' => 'вул. Камянецька 62, 2-й поверх',
     'userNames' => 'Ольга, Лілія'
     );
 
@@ -25,15 +25,16 @@ class messageControl {
     public $message;
 
     public function __construct($post_array) {
-        $this->name = $post_array['name'];
-        $this->email = $post_array['email'];
-        $this->phone = $post_array['phone'];
-        $this->message = $post_array['message'];
+        $this->name    = self::filter($post_array['name']);
+        $this->email   = self::filter($post_array['email']);
+        $this->phone   = self::filter($post_array['phone']);
+        $this->message = self::filter($post_array['message']);
     }
-
+    
+    //проверка регистра данных
     public function checkRegex() {
         //проверка регулярных выражений
-        if (!preg_match("/^[А-Яа-яA-Za-z0-9 \.\,\-\ \!\;\:]{3,20}$/i", $this->name)) {
+        if (!preg_match("/^[А-Яа-яA-Za-z0-9 \.\,\-\ \!\;\:]{2,20}$/i", $this->name)) {
             $error['name'] = 'error';
         }
         if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
@@ -47,6 +48,15 @@ class messageControl {
         }
         
         return $error;
+    }
+    
+    //фильтр входящих данных 
+    public static function filter($data) {
+        $quotes = array("\x27", "\x22", "\x60", "\t", "\n", "\r", "*", "%", "<", ">", "?", "!", "#","/","\\");
+        $text = trim(strip_tags($data));
+        $text = str_replace($quotes, '', $text);
+        
+        return $text;
     }
 
 }
@@ -62,7 +72,7 @@ if (isset($_POST['name']) && isset($_POST['email'])) {
 
         $subject = "Сообщение с сайта ";
 
-        $message = "
+        $userMessage = "
         <html> 
             <head> 
                 <title>Сообщение с сайта </title> 
@@ -78,20 +88,42 @@ if (isset($_POST['name']) && isset($_POST['email'])) {
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= "From: {$config['userSite']}";
 
-        mail($to, $subject, $message, $headers);
+        mail($to, $subject, $userMessage, $headers);
         
-        header("Location: www.{$config['userSite']}");
+        header("Location: /?message=true");
         
     }else{
         //ошибка регистра
         $name = $message->name;
         $email = $message->email;
         $phone = $message->phone;
-        $message = $message->message;
+        $userMessage = $message->message;
         
-        $sendMessage = "Повiдомлення не вiдправлено!";
+        //ошибка регистра, повторное заполнение формы методом GET
+        header("Location: /?form=true&name=$name&email=$email&phone=$phone&message=$userMessage&end=true/#contact");
     }
 }
+
+//ошибка регистра, повторное заполнение формы
+if (isset($_GET['form']) && $_GET['form']=='true') {
+        
+        $message = new messageControl($_GET);
+        $error = $message->checkRegex();
+        
+        //ошибка регистра
+        $name = $message->name;
+        $email = $message->email;
+        $phone = $message->phone;
+        $userMessage = $message->message;
+        
+        $sendMessage = 'Повідомлення не відправлено!';
+}
+
+//сообщение об успешной отправке письма
+if (isset($_GET['message']) && $_GET['message']=='true') {
+    $succesfull = "<span class='shadow'><b>Ваше сообщение успешно отправлено</b></span>";
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -105,10 +137,11 @@ and open the template in the editor.
         <meta charset="windows-1251">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="description" content="">
+        <meta name="description" content="Професійний косметолог у м.Хмельницькому">
+        <meta name="keywords" content="косметолог, услуги косметолога, косметолог Хмельницький, косметика CHRISTINA, пиллинг, чистка лица" /> 
         <meta name="author" content="">
 
-        <title>Красота - залог успеха</title>
+        <title>Професійний косметолог у м.Хмельницькому +38(093) 916-91-39  +38(097) 720-95-34</title>
         <link rel="shortcut icon" href="/img/icon.png">
         <!-- Bootstrap Core CSS -->
         <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -142,7 +175,7 @@ and open the template in the editor.
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                         <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
                     </button>
-                    <a class="navbar-brand page-scroll" href="#page-top">Косметологічні послуги</a>
+                    <a class="navbar-brand page-scroll" href="#page-top">Професійний косметолог +38(093) 916-91-39  +38(097) 720-95-34 м.хмельницький</a>
                 </div>
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
@@ -172,7 +205,7 @@ and open the template in the editor.
                 <div class="header-content-inner">
                     <h1 id="homeHeading" class="shadow">Кожна жінка повинна знати дві речі: чого і кого вона хоче</h1>
                     <hr>
-                    <p>"KOKO CHANEL"</p>
+                    <p><? if($succesfull) echo $succesfull; else echo ("\"KOKO CHANEL\""); ?></p>
                     <a href="#about" class="btn btn-primary btn-xl page-scroll">Косметологічні послуги</a>
                     <p class="text-faded" style="color: #2F4F4F;">
                         <br>
@@ -212,7 +245,7 @@ and open the template in the editor.
 
 <!--******************** <section id="services"> *******************************************************************-->
 
-        <section id="services">
+        <section class="bg_services" id="services">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12 text-center">
@@ -223,9 +256,7 @@ and open the template in the editor.
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="panel panel-default">
-                            <div class="panel-heading">
-                                Перелік процедур
-                            </div>
+                      
                             <!-- /.panel-heading -->
                             <div class="panel-body">
                                 <table class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" id="dataTables-example" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;" width="100%">
@@ -233,8 +264,7 @@ and open the template in the editor.
                                     <tbody>
                                         <tr role="row">
                                             <td> 1.</td>
-                                            <td>Консультація  косметолога  (без процедури)  -50грн <br>
-                                                При замовленні любої процедури консультація надається <b>безкоштовно</b></td>
+                                            <td>Консультація  косметолога  <b>безкоштовно</b> <br></td>
                                         </tr>
                                         <tr role="row">
                                             <td> 2.</td>
@@ -325,7 +355,7 @@ and open the template in the editor.
                             <div class="portfolio-box-caption">
                                 <div class="portfolio-box-caption-content">
                                     <div class="project-category text-faded">
-                                        Новітня косметика
+                                        Новітня косметика "CHRISTINA"
                                     </div>
                                     <div class="project-name">
                                         Подивитись
@@ -396,12 +426,13 @@ and open the template in the editor.
                         <a href="img/portfolio/photo/7.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/8.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/9.jpg" class="portfolio-box"></a>
-                        <a href="img/portfolio/photo/10.png" class="portfolio-box"></a>
+                        <a href="img/portfolio/photo/10.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/11.jpg" class="portfolio-box"></a>
-                        <a href="img/portfolio/photo/12.png" class="portfolio-box"></a>
+                        <a href="img/portfolio/photo/12.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/13.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/14.jpg" class="portfolio-box"></a>
                         <a href="img/portfolio/photo/15.jpg" class="portfolio-box"></a>
+                        <a href="img/portfolio/photo/16.jpg" class="portfolio-box"></a>
                     </div>
                 </div>
             </div>
@@ -489,7 +520,7 @@ and open the template in the editor.
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <textarea class="form-control <?=$error['message'];?>" placeholder="Введіть питання *" id="message" required="" data-validation-required-message="Please enter a message."   name="message"> <?=$message;?> </textarea>
+                                        <textarea class="form-control <?=$error['message'];?>" placeholder="Введіть питання *" id="message" required="" data-validation-required-message="Please enter a message."   name="message"> <?=$userMessage;?> </textarea>
                                         <p class="help-block text-danger"></p>
                                     </div>
                                     <div class="form-group">

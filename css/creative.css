@@ -46,6 +46,10 @@ p {
   background-image: url('../img/about.jpeg');
   
 }
+.bg_services {
+  background-image: url('../img/header3.jpg');
+ 
+}
 .bg-dark {
   background-color: #222222;
   color: white;
